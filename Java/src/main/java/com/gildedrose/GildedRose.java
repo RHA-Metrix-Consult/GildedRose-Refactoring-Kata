@@ -8,15 +8,39 @@ import com.deliveredtechnologies.rulebook.lang.RuleBookRuleBuilder;
 import com.deliveredtechnologies.rulebook.model.RuleBook;
 
 import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 class GildedRose {
 
+    /**
+     * The name of the legendary item Sulfuras
+     */
     public static final String SULFURAS_HAND_OF_RAGNAROS = "Sulfuras, Hand of Ragnaros";
-    private static final String AGED = "Aged";
+    private static final String CHEESE_PREFIX = "Aged";
+    private static final String BACKSTAGE_PASSES_PREFIX = "Backstage passes";
+    private static final String CONJURED_PREFIX = "Conjured";
+    private static final RuleBook<QualityUpdater> RULE_BOOK = RuleBookBuilder.create()
+            .withResultType(QualityUpdater.class)
+            .withDefaultResult(new CommonQualityUpdater())
+            .addRule(sulfurasRule())
+            .addRule(cheeseRule())
+            .addRule(backstagePassesRule())
+            .addRule(conjuredRule())
+            .build();
     private Item[] items;
 
     /**
-     * Select a quality udpater based on the provdided name
+     * Creates a Gilded Rose app with the provided items
+     *
+     * @param items the items
+     */
+    public GildedRose(Item[] items) {
+        this.items = items;
+    }
+
+    /**
+     * Select a quality udpater based on the provided name
      *
      * @param itemName the name
      * @return the quality updater
@@ -24,33 +48,38 @@ class GildedRose {
     public static QualityUpdater selectQualityUpdater(String itemName) {
         NameValueReferableMap<String> facts = new FactMap<>();
         facts.setValue("name", itemName);
-        RuleBook<QualityUpdater> ruleBook = RuleBookBuilder.create()
-                .withResultType(QualityUpdater.class)
-                .withDefaultResult(new CommonQualityUpdater())
-                .addRule(sulfurasRule())
-                .addRule(cheeseRule())
-                .build();
-        ruleBook.run(facts);
-        return ruleBook.getResult().map(Result::getValue).orElse(new CommonQualityUpdater());
-    }
-
-    private static Consumer<RuleBookRuleBuilder<QualityUpdater>> cheeseRule() {
-        return rule -> rule.withFactType(String.class)
-                .when(facts -> SULFURAS_HAND_OF_RAGNAROS.equals(facts.getOne()))
-                .then((facts, result) -> result.setValue(new SulfurasQualityUpdater()));
-
+        RULE_BOOK.run(facts);
+        return RULE_BOOK.getResult()
+                .map(Result::getValue)
+                .orElse(new CommonQualityUpdater());
     }
 
     private static Consumer<RuleBookRuleBuilder<QualityUpdater>> sulfurasRule() {
+        return rule(SULFURAS_HAND_OF_RAGNAROS::equals, SulfurasQualityUpdater::new);
+
+    }
+
+    private static Consumer<RuleBookRuleBuilder<QualityUpdater>> cheeseRule() {
+        return rule(s -> s.startsWith(CHEESE_PREFIX), CheeseQualityUpdater::new);
+    }
+
+    private static Consumer<RuleBookRuleBuilder<QualityUpdater>> backstagePassesRule() {
+        return rule(s -> s.startsWith(BACKSTAGE_PASSES_PREFIX), BackstagePassesQualityUpdater::new);
+    }
+
+    private static Consumer<RuleBookRuleBuilder<QualityUpdater>> conjuredRule() {
+        return rule(s -> s.startsWith(CONJURED_PREFIX), ConjuredQualityUpdater::new);
+    }
+
+    private static Consumer<RuleBookRuleBuilder<QualityUpdater>> rule(Predicate<String> when, Supplier<QualityUpdater> resultSupplier) {
         return rule -> rule.withFactType(String.class)
-                .when(facts -> facts.getOne().startsWith(AGED))
-                .then((facts, result) -> result.setValue(new CheeseQualityUpdater()));
+                .when(facts -> when.test(facts.getOne()))
+                .then((facts, result) -> result.setValue(resultSupplier.get()));
     }
 
-    public GildedRose(Item[] items) {
-        this.items = items;
-    }
-
+    /**
+     * Updates the quality of all the items
+     */
     public void updateQuality() {
         for (Item item : items) {
             selectQualityUpdater(item.name).update(item);

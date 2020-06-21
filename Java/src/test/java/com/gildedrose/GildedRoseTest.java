@@ -14,7 +14,7 @@ class GildedRoseTest {
 
     @Test
     void selectQualityUpdaterForSulfuras() {
-        QualityUpdater qualityUpdater = GildedRose.selectQualityUpdater(GildedRose.SULFURAS_HAND_OF_RAGNAROS);
+        QualityUpdater qualityUpdater = GildedRose.selectQualityUpdater("Sulfuras, Hand of Ragnaros");
         assertTrue(qualityUpdater instanceof SulfurasQualityUpdater);
     }
 
@@ -22,6 +22,18 @@ class GildedRoseTest {
     void selectQualityUpdaterForCheese() {
         QualityUpdater qualityUpdater = GildedRose.selectQualityUpdater("Aged Brie");
         assertTrue(qualityUpdater instanceof CheeseQualityUpdater);
+    }
+
+    @Test
+    void selectQualityUpdaterForBackstagePasses() {
+        QualityUpdater qualityUpdater = GildedRose.selectQualityUpdater("Backstage passes to a TAFKAL80ETC concert");
+        assertTrue(qualityUpdater instanceof BackstagePassesQualityUpdater);
+    }
+
+    @Test
+    void selectQualityUpdaterForConjured() {
+        QualityUpdater qualityUpdater = GildedRose.selectQualityUpdater("Conjured Mana Cake");
+        assertTrue(qualityUpdater instanceof ConjuredQualityUpdater);
     }
 
 }
