@@ -14,7 +14,11 @@ public abstract class AbstractQualityUpdater implements QualityUpdater {
     protected abstract void updateQuality(Item item);
 
     protected boolean hasSellDatePassed(Item item) {
-        return item.sellIn > 0;
+        return item.sellIn < 0;
+    }
+
+    protected boolean hasFewerDays(Item item, int numberOfDaysLeft) {
+        return item.sellIn < numberOfDaysLeft;
     }
 
     private void checkQualityIsInBound(Item item) {
