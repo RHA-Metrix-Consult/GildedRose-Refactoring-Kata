@@ -18,4 +18,10 @@ class GildedRoseTest {
         assertTrue(qualityUpdater instanceof SulfurasQualityUpdater);
     }
 
+    @Test
+    void selectQualityUpdaterForCheese() {
+        QualityUpdater qualityUpdater = GildedRose.selectQualityUpdater("Aged Brie");
+        assertTrue(qualityUpdater instanceof CheeseQualityUpdater);
+    }
+
 }

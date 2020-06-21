@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 class GildedRose {
 
     public static final String SULFURAS_HAND_OF_RAGNAROS = "Sulfuras, Hand of Ragnaros";
-    private static final String AGED_BRIE = "Aged Brie";
+    private static final String AGED = "Aged";
     private Item[] items;
 
     /**
@@ -28,15 +28,23 @@ class GildedRose {
                 .withResultType(QualityUpdater.class)
                 .withDefaultResult(new CommonQualityUpdater())
                 .addRule(sulfurasRule())
+                .addRule(cheeseRule())
                 .build();
         ruleBook.run(facts);
         return ruleBook.getResult().map(Result::getValue).orElse(new CommonQualityUpdater());
     }
 
-    private static Consumer<RuleBookRuleBuilder<QualityUpdater>> sulfurasRule() {
+    private static Consumer<RuleBookRuleBuilder<QualityUpdater>> cheeseRule() {
         return rule -> rule.withFactType(String.class)
                 .when(facts -> SULFURAS_HAND_OF_RAGNAROS.equals(facts.getOne()))
                 .then((facts, result) -> result.setValue(new SulfurasQualityUpdater()));
+
+    }
+
+    private static Consumer<RuleBookRuleBuilder<QualityUpdater>> sulfurasRule() {
+        return rule -> rule.withFactType(String.class)
+                .when(facts -> facts.getOne().startsWith(AGED))
+                .then((facts, result) -> result.setValue(new CheeseQualityUpdater()));
     }
 
     public GildedRose(Item[] items) {
