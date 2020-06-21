@@ -2,16 +2,20 @@ package com.gildedrose;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GildedRoseTest {
 
     @Test
-    void foo() {
-        Item[] items = new Item[] { new Item("foo", 0, 0) };
-        GildedRose app = new GildedRose(items);
-        app.updateQuality();
-        assertEquals("fixme", app.items[0].name);
+    void selectQualityUpdaterForCommonItem() {
+        QualityUpdater qualityUpdater = GildedRose.selectQualityUpdater("foo");
+        assertTrue(qualityUpdater instanceof CommonQualityUpdater);
+    }
+
+    @Test
+    void selectQualityUpdaterForSulfuras() {
+        QualityUpdater qualityUpdater = GildedRose.selectQualityUpdater(GildedRose.SULFURAS_HAND_OF_RAGNAROS);
+        assertTrue(qualityUpdater instanceof SulfurasQualityUpdater);
     }
 
 }

@@ -1,62 +1,51 @@
 package com.gildedrose;
 
+import com.deliveredtechnologies.rulebook.FactMap;
+import com.deliveredtechnologies.rulebook.NameValueReferableMap;
+import com.deliveredtechnologies.rulebook.Result;
+import com.deliveredtechnologies.rulebook.lang.RuleBookBuilder;
+import com.deliveredtechnologies.rulebook.lang.RuleBookRuleBuilder;
+import com.deliveredtechnologies.rulebook.model.RuleBook;
+
+import java.util.function.Consumer;
+
 class GildedRose {
-    Item[] items;
+
+    public static final String SULFURAS_HAND_OF_RAGNAROS = "Sulfuras, Hand of Ragnaros";
+    private static final String AGED_BRIE = "Aged Brie";
+    private Item[] items;
+
+    /**
+     * Select a quality udpater based on the provdided name
+     *
+     * @param itemName the name
+     * @return the quality updater
+     */
+    public static QualityUpdater selectQualityUpdater(String itemName) {
+        NameValueReferableMap<String> facts = new FactMap<>();
+        facts.setValue("name", itemName);
+        RuleBook<QualityUpdater> ruleBook = RuleBookBuilder.create()
+                .withResultType(QualityUpdater.class)
+                .withDefaultResult(new CommonQualityUpdater())
+                .addRule(sulfurasRule())
+                .build();
+        ruleBook.run(facts);
+        return ruleBook.getResult().map(Result::getValue).orElse(new CommonQualityUpdater());
+    }
+
+    private static Consumer<RuleBookRuleBuilder<QualityUpdater>> sulfurasRule() {
+        return rule -> rule.withFactType(String.class)
+                .when(facts -> SULFURAS_HAND_OF_RAGNAROS.equals(facts.getOne()))
+                .then((facts, result) -> result.setValue(new SulfurasQualityUpdater()));
+    }
 
     public GildedRose(Item[] items) {
         this.items = items;
     }
 
     public void updateQuality() {
-        for (int i = 0; i < items.length; i++) {
-            if (!items[i].name.equals("Aged Brie")
-                    && !items[i].name.equals("Backstage passes to a TAFKAL80ETC concert")) {
-                if (items[i].quality > 0) {
-                    if (!items[i].name.equals("Sulfuras, Hand of Ragnaros")) {
-                        items[i].quality = items[i].quality - 1;
-                    }
-                }
-            } else {
-                if (items[i].quality < 50) {
-                    items[i].quality = items[i].quality + 1;
-
-                    if (items[i].name.equals("Backstage passes to a TAFKAL80ETC concert")) {
-                        if (items[i].sellIn < 11) {
-                            if (items[i].quality < 50) {
-                                items[i].quality = items[i].quality + 1;
-                            }
-                        }
-
-                        if (items[i].sellIn < 6) {
-                            if (items[i].quality < 50) {
-                                items[i].quality = items[i].quality + 1;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (!items[i].name.equals("Sulfuras, Hand of Ragnaros")) {
-                items[i].sellIn = items[i].sellIn - 1;
-            }
-
-            if (items[i].sellIn < 0) {
-                if (!items[i].name.equals("Aged Brie")) {
-                    if (!items[i].name.equals("Backstage passes to a TAFKAL80ETC concert")) {
-                        if (items[i].quality > 0) {
-                            if (!items[i].name.equals("Sulfuras, Hand of Ragnaros")) {
-                                items[i].quality = items[i].quality - 1;
-                            }
-                        }
-                    } else {
-                        items[i].quality = items[i].quality - items[i].quality;
-                    }
-                } else {
-                    if (items[i].quality < 50) {
-                        items[i].quality = items[i].quality + 1;
-                    }
-                }
-            }
+        for (Item item : items) {
+            selectQualityUpdater(item.name).update(item);
         }
     }
 }

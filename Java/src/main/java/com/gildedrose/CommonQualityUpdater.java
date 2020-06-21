@@ -1,10 +1,11 @@
 package com.gildedrose;
 
-public class CommonQualityUpdater {
+public class CommonQualityUpdater implements QualityUpdater {
 
     public static final int MAX_QUALITY = 50;
     public static final int MIN_QUALITY = 0;
 
+    @Override
     public void update(Item item) {
         decreaseSellIn(item);
         decreaseQuality(item);
